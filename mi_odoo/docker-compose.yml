@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Servidor Odoo 17
+  odoo:
+    image: odoo:17.0
+    depends_on:
+      - db
+    ports:
+      - "8069:8069"  # Web Odoo
+      - "8071:8071"  # LiveChat
+      - "8072:8072"  # Worker
+    environment:
+      - HOST=db
+      - USER=odoo
+      - PASSWORD=odoo
+      - ADMIN_PASSWD=admin  # Contraseña del admin de Odoo
+    volumes:
+      - ./addons:/mnt/extra-addons  # Módulos personalizados
+      - ./config:/etc/odoo          # Configuración personalizada
+    restart: unless-stopped

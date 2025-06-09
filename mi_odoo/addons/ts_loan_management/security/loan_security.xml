@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record model="ir.module.category" id="module_category_ts_loan_management">
+        <field name="name">Partner Loan</field>
+        <field name="sequence">101</field>
+        <field name="parent_id" ref="base.module_category_accounting"/>
+<!--        <field name="visible" eval="0" />-->
+    </record>
+
+    <record id="group_customer_loan_user" model="res.groups">
+        <field name="name">Loan User</field>
+        <field name="category_id" ref="ts_loan_management.module_category_ts_loan_management"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_customer_loan_manager" model="res.groups">
+        <field name="name">Loan Manager</field>
+        <field name="category_id" ref="ts_loan_management.module_category_ts_loan_management"/>
+        <field name="implied_ids" eval="[(4, ref('group_customer_loan_user'))]"/>
+<!--               eval="[(4, ref('group_hr_interviewer'))]"/>-->
+    </record>
+
+</odoo>

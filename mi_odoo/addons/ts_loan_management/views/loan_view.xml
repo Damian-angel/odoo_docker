@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="seq_loan_management" model="ir.sequence">
+            <field name="name">Loan Management</field>
+            <field name="code">customer.loan</field>
+            <field name="prefix">LOAN</field>
+            <field name="padding">6</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+
+    <record id="form_view_of_loan" model="ir.ui.view">
+        <field name="name">Customer Loan Form</field>
+        <field name="model">customer.loan</field>
+        <field name="arch" type="xml">
+            <form string="Customer Loan Request">
+                <header>
+                    <field name="status" widget="statusbar" readonly="True"/>
+                    <button name="action_reset_todraft" string="Reset to Draft" type="object" class="btn-primary"
+                            invisible="status != 'cancel'"/>
+                    <button name="action_send_approval" type="object" string="Send For Approval" class="btn-primary"
+                            invisible="status != 'draft'"/>
+                    <button name="approve_loan" type="object" string="Approved" class="btn-primary"
+                            groups="ts_loan_management.group_customer_loan_manager" invisible="status != 'waiting'"/>
+                    <button name="%(action_full_pay_cft)d" type="action" string="Pay Full Loan"
+                            invisible="status not in ['approved'] or total_remaining == 0.0"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="status in ['done', 'cancel']"/>
+                    <button name="action_create_journal_entry" string="Create Loan Charges" type="object"
+                            invisible="show_charges_button == False"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box">
+                        <button name="view_entry" class="oe_stat_button" icon="fa-book"
+                                invisible="status not in ['done','approved']" type="object" string="Journal Entry"/>
+                        <button name="view_items" class="oe_stat_button" icon="fa-book"
+                                invisible="status not in ['done','approved']" type="object" string="Journal Items"/>
+                    </div>
+                    <h1 class="mt0">
+                        <field name="name" readonly="True" class="oe_inline"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="show_charges_button" invisible="1"/>
+                            <field name="loan_type" readonly="status != 'draft'"/>
+                            <field name="partner_id" widget="res_partner_many2one" readonly="status != 'draft'"
+                                   context="{'res_partner_search_mode':'customer'}"/>
+                            <field name="amount" readonly="status in ['done', 'approved', 'cancelled']"/>
+                            <label for="no_of_installment"/>
+                            <div>
+                                <field name="no_of_installment" readonly="status in ['done', 'approved', 'cancelled']"/>
+                            </div>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group>
+                            <field name="loan_issuing_date" invisible="loan_issuing_date == False" readonly="True"/>
+                            <field name="start_date" readonly="status != 'draft'" required="True"/>
+                            <label for="rate"/>
+                            <div>
+                                <field name="rate" readonly="status in ['done', 'approved', 'cancelled']"
+                                       class="oe_inline"/>%
+                                <field name="rate_period" invisible="True"/>
+                            </div>
+                            <field name="hide_interval" invisible="True"/>
+                            <label for="number_of_interval" string="Interval In Installments"
+                                   invisible="hide_interval == False"/>
+                            <div class="o_row" invisible="hide_interval == False">
+                                <field name="number_of_interval"/>
+                                <field name="select_period"/>
+                            </div>
+                            <field name="currency_id" groups="base.group_multi_currency"/>
+                            <field name="loan_disperse_date" string="Disbursement Date" readonly="status != 'draft'"
+                                   required="True"/>
+                            <field name="disbursement_amount"/>
+                            <field name="loan_account_no"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Monetary">
+                            <div class="o_row" invisible="status not in ['approved', 'cancel']">
+                                <label for="loan_disperse_date"/>
+                                <field name="loan_disperse_date" string="Disbursement Date" readonly="status != 'draft'"
+                                       required="True"/>
+                                <label for="disbursement_amount" string="Disbursed Amount"/>
+                                <field name="disbursement_amount"/>
+                                <button name="revert_disbursement" type="object"
+                                        groups="ts_loan_management.group_customer_loan_manager"
+                                        string="Revert loan Disbursement" class="btn btn-primary"
+                                        confirm="Alert! Be Careful: The Following Loans, and the Journal Entries of Disbursement, Loan Charges, and EMIs will be deleted."/>
+                            </div>
+                            <h4>Charges</h4>
+                            <label for="charge_account_id"/>
+                            <field name="charge_account_id"/>
+                            <field name="loan_charges_ids">
+                                <tree editable="bottom" delete="false">
+                                    <field name="date" readonly="journal_entries != False" widget="date"/>
+                                    <field name="loan_charges_id" readonly="journal_entries != False"/>
+                                    <field name="name" readonly="journal_entries != False"/>
+                                    <field name="tax_id" readonly="journal_entries != False"/>
+                                    <field name="charge_amount_type" readonly="journal_entries != False"/>
+                                    <field name="charge_amount" readonly="journal_entries != False"/>
+                                    <field name="journal_id" readonly="journal_entries != False"/>
+                                    <field name="invoice"/>
+                                    <field name="account_id" string="Debit Account"
+                                           readonly="journal_entries != False"/>
+                                    <field name="amount_untaxed" sum="Total" readonly="journal_entries != False"
+                                           string="Untaxed"/>
+                                    <field name="amount_tax" sum="Total" readonly="journal_entries != False"/>
+                                    <field name="amount" sum="Total" readonly="journal_entries != False"/>
+                                    <field name="debit_account_id" string="Credit Account"
+                                           readonly="journal_entries != False"/>
+                                    <button type="object" name="action_open_journal_entries" string="Entries"
+                                            icon="fa-arrow-circle-o-right" invisible="journal_entries == False"/>
+                                    <field name="journal_entries" invisible="1"/>
+                                    <button type="object" name="delete_charges_wizard" string="Delete"/>
+                                    <field name="journal_entries" invisible="1"/>
+                                </tree>
+                            </field>
+                            <br/>
+                            <br/>
+                            <h4>EMIs</h4>
+                            <div groups="ts_loan_management.group_customer_loan_manager" class="oe_right">
+                                <button name="action_calculation" type="object" string="Calculate Installments"
+                                        class="btn-primary"
+                                        invisible="status in ['draft', 'cancelled', 'done', 'approved']"/>
+                                <button name="clear_installment_line" type="object" string="Clear All"
+                                        invisible="status in ['draft', 'cancelled', 'done', 'approved']"/>
+                            </div>
+                            <field name="line_ids" nolabel="1" readonly="status != 'draft'">
+                                <tree string="Customer Loan Installments" default_order="due_date" create="false"
+                                      delete="false">
+                                    <field name="sr_number"/>
+                                    <field name="due_date"/>
+                                    <field name="amount"/>
+                                    <field name="interest"/>
+                                    <field name="installment"/>
+                                    <field name="remaining"/>
+                                    <field name="hide_payment_btn" invisible="True"/>
+                                    <field name="status" readonly="True" required="True"/>
+                                    <button name="%(customer_loan_pay_amount_line_action)d"
+                                            invisible="hide_payment_btn == False" context="{'due_date':due_date}"
+                                            class="oe_stat_button" type="action" string="Pay EMI"/>
+                                    <button name="mark_unpaid" invisible="status != 'paid'" class="btn-secondary"
+                                            type="object" string="Mark Unpaid"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_s oe_right">
+                                <field name="total_paid" class="oe_subtotal_footer_separator" widget="monetary"/>
+                                <field name="total_paid_interest" class="oe_subtotal_footer_separator"
+                                       widget="monetary"/>
+                                <field name="total_remaining" class="oe_subtotal_footer_separator"/>
+                            </group>
+                            <field name="description" placeholder="Terms &amp; Condition" nolabel="1"/>
+                        </page>
+                        <page string="Accounting">
+                            <group>
+                                <group>
+                                    <field name="loan_journal_id" required="status == 'waiting'"/>
+                                    <field name="debit_account_id" string="Dispersement Debit Account"
+                                           required="status == 'waiting'"/>
+                                    <field name="interest_account_id" required="status == 'waiting'"/>
+                                </group>
+                                <group>
+                                    <field name="credit_account_id" string="Credit Account"
+                                           required="status == 'waiting'"/>
+                                    <field name="emi_credit_account_id" string="EMI Account"
+                                           required="status == 'waiting'"/>
+                                    <field name="user_id"/>
+                                    <field name="charge_account_id" required="status == 'waiting'"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+
+
+    <record id="tree_view_of_loan" model="ir.ui.view">
+        <field name="name">Customer Loan Tree</field>
+        <field name="model">customer.loan</field>
+        <field name="arch" type="xml">
+            <tree string="Customer Loan Request" default_order="name desc">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="no_of_installment"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id" groups="base.group_multi_currency"/>
+                <field name="start_date"/>
+                <field name="user_id"/>
+                <field name="status"/>
+                <field name="amount" sum="Customer Loan Amount"/>
+                <field name="total_paid" string="Principle Paid" widget="monetary" optional="hide"
+                       sum="Total Principle Paid"/>
+                <field name="total_paid_interest" string="Interest Paid" widget="monetary" optional="hide"
+                       sum="Total Interest Paid"/>
+                <field name="total_remaining" string="Remaining Principle" optional="hide"
+                       sum="Total Remaining Principle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="tree_view_of_bank_loan" model="ir.ui.view">
+        <field name="name">Customer Loan Tree</field>
+        <field name="model">customer.loan</field>
+        <field name="arch" type="xml">
+            <tree string="Customer Loan Request">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="no_of_installment"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id" groups="base.group_multi_currency"/>
+                <field name="start_date"/>
+                <field name="user_id"/>
+                <field name="status"/>
+                <field name="amount" sum="Customer Loan Amount"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="search_view_of_loan" model="ir.ui.view">
+        <field name="name">Customer Loan Search</field>
+        <field name="model">customer.loan</field>
+        <field name="arch" type="xml">
+            <search string="Customer Loan Requests">
+                <field name="name"/>
+                <field name="partner_id"/>
+
+                <field name="status"/>
+                <filter name="filter_customer_loan" string="Customer Loan" domain="[('loan_type','=', 'customer')]"/>
+                <filter name="filter_supplier_loan" string="Vendor Loan" domain="[('loan_type','=', 'supplier')]"/>
+                <filter name="filter_loan_confirm" string="Confirm" domain="[('status','=', 'approved')]"/>
+                <filter name="filter_loan_cancelled" string="Cancelled" domain="[('status','=', 'cancel')]"/>
+                <filter name="filter_loan_archived" string="Archived" domain="[('active','=', False)]"/>
+                <group expand="0" string="Group By...">
+                    <filter name="group_loan_partner_id" string="Partner" context="{'group_by':'partner_id'}"/>
+                    <filter name="group_loan_by_status" string="Loan Status" icon="terp-go-today" domain="[]"
+                            context="{'group_by':'status'}"/>
+                    <filter name="group_loan_by_type" string="Loan Type" icon="terp-go-today" domain="[]"
+                            context="{'group_by':'loan_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="form_view_of_loan_line" model="ir.ui.view">
+        <field name="name">Loan Line Form</field>
+        <field name="model">customer.loan.line</field>
+        <field name="arch" type="xml">
+            <form string="Customer Loan Installments" create="0" edit="0">
+                <header>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id" widget="res_partner_many2one" readonly="True"/>
+                            <field name="amount" readonly="True" required="True"/>
+                            <field name="interest" readonly="True"/>
+                            <field name="company_id" groups="base.group_multi_company" readonly="True"/>
+                        </group>
+                        <group>
+                            <field name="loan_id" string="Reference" readonly="True" required="True"/>
+                            <field name="due_date" readonly="True" required="True"/>
+                            <field name="installment" readonly="True"/>
+                            <field name="currency_id" groups="base.group_multi_currency" readonly="True"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="tree_view_of_loan_line" model="ir.ui.view">
+        <field name="name">Loan Line Tree</field>
+        <field name="model">customer.loan.line</field>
+        <field name="arch" type="xml">
+            <tree string="Customer Loan Installments" create="0" default_order="create_date desc">
+                <field name="loan_id"/>
+                <field name="partner_id"/>
+                <field name="due_date"/>
+                <field name="interest"/>
+                <field name="amount"/>
+                <field name="installment"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id" groups="base.group_multi_currency"/>
+                <field name="status"/>
+                <field name="create_date" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="tree_view_of_bank_loan_line" model="ir.ui.view">
+        <field name="name">Loan Line Tree</field>
+        <field name="model">customer.loan.line</field>
+        <field name="arch" type="xml">
+            <tree string="Customer Loan Installments" create="0">
+                <field name="loan_id"/>
+                <field name="partner_id"/>
+                <field name="due_date"/>
+                <field name="amount"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id" groups="base.group_multi_currency"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="search_view_of_loan_line" model="ir.ui.view">
+        <field name="name">Loan Line Search</field>
+        <field name="model">customer.loan.line</field>
+        <field name="arch" type="xml">
+            <search string="Customer Loan Installments">
+                <field name="partner_id"/>
+                <field name="loan_id"/>
+                <field name="due_date"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="currency_id" groups="base.group_multi_currency"/>
+                <field name="status"/>
+                <filter name="filter_loan_line_draft" string="Pending" domain="[('status','=', 'draft')]"/>
+                <filter name="filter_loan_line_cancel" string="Cancelled" domain="[('status','=', 'cancel')]"/>
+                <filter name="filter_loan_line_paid" string="Paid" domain="[('status','=', 'paid')]"/>
+                <group expand="0" string="Group By...">
+                    <filter name="group_partner_id" string="Customer" context="{'group_by':'partner_id'}"/>
+                    <filter string="Customer Loan" name="group_loan" context="{'group_by':'loan_id'}"/>
+                    <filter string="Due Date" name="group_month" context="{'group_by':'due_date'}"/>
+                    <filter name="group_status" string="Status" icon="terp-go-today" context="{'group_by':'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_customer_loan" model="ir.actions.act_window">
+        <field name="name">Loan Request</field>
+        <field name="res_model">customer.loan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'loan':True}</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create Customer Loan request!
+            </p>
+        </field>
+    </record>
+
+    <record id="action_vendor_loan" model="ir.actions.act_window">
+        <field name="name">Vendor Loan Request</field>
+        <field name="res_model">customer.loan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'bank':True}</field>
+        <field name="view_id" ref="tree_view_of_bank_loan"/>
+        <field name="domain">[('vendor_id','!=',False)]</field>
+        <field name="help" type="html">
+            <p class="oe_view_nocontent_create">
+                Click here to create Loan request!
+            </p>
+        </field>
+    </record>
+
+    <record id="action_loan_line_for_customer" model="ir.actions.act_window">
+        <field name="name">Loan Installments</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">customer.loan.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{'search_default_filter_loan_line_draft': 1}</field>
+    </record>
+
+    <record id="action_loan_line_for_vendor" model="ir.actions.act_window">
+        <field name="name">Vendor Loan Installments</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">customer.loan.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="tree_view_of_bank_loan_line"/>
+        <field name="domain">[('vendor_id','!=',False)]</field>
+    </record>
+
+    <menuitem id="menu_main_loan_mgmt" name="Loans" groups="group_customer_loan_user" parent="account.menu_finance"/>
+    <menuitem id="menu_cst_loan_contracts" name="Loan" action="action_customer_loan" parent="menu_main_loan_mgmt"
+              sequence="1"/>
+    <menuitem id="menu_customer_loan_installments" name="Installments" action="action_loan_line_for_customer"
+              sequence="2" parent="menu_main_loan_mgmt"/>
+
+    <record id="form_view_of_loan_delete_loan" model="ir.ui.view">
+        <field name="name">Confirmation</field>
+        <field name="model">delete.loan.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Customer Loan Delete" create="0" edit="0">
+                <div>
+                    <h6>
+                        <span style="color: red;">Alert:</span>
+                        The Following Loans, and the Journal Entries for their Charges and EMIs will be deleted--
+                    </h6>
+
+                </div>
+                <field name="loan_ids" widget="many2many_tags" readonly="True"/>
+                <footer>
+                    <button string="ok" type="object" name="btn_ok" class="oe_highlight"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_serve_delete_loan" model="ir.actions.server">
+        <field name="name">Delete</field>
+        <field name="model_id" ref="model_customer_loan"/>
+        <field name="groups_id" eval="[(4, ref('ts_loan_management.group_customer_loan_manager'))]"/>
+        <field name="binding_model_id" ref="ts_loan_management.model_customer_loan"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.button_to_unlink()
+        </field>
+    </record>
+
+</odoo>

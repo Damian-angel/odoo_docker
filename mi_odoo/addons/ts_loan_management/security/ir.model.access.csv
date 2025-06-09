@@ -1,0 +1,13 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_custmer_loan,customer.loan,model_customer_loan,ts_loan_management.group_customer_loan_user,1,1,1,0
+access_customer_loan_manager,customer.loan,model_customer_loan,ts_loan_management.group_customer_loan_manager,1,1,1,0
+access_customer_loan_line,customer.loan.line,model_customer_loan_line,ts_loan_management.group_customer_loan_user,1,1,1,1
+access_customer_loan_line_manager,customer.loan.line,model_customer_loan_line,ts_loan_management.group_customer_loan_manager,1,1,1,1
+access_customer_loan_pay_amount_manager,customer.loan.pay.amount,model_customer_loan_pay_amount,,1,1,1,1
+access_full_amount_pay_manager,full.amount.pay,model_full_amount_pay,,1,1,1,1
+access_loan_charges_user,access.loan.charges.user,model_loan_charges_technians,ts_loan_management.group_customer_loan_user,1,1,0,0
+access_loan_charges,access.loan.charges,model_loan_charges_technians,ts_loan_management.group_customer_loan_manager,1,1,1,1
+access_loan_chargesline_user,access.loan.chargesline.user,model_loan_charges_line_technians,ts_loan_management.group_customer_loan_user,1,1,1,0
+access_loan_chargesline,access.loan.chargesline,model_loan_charges_line_technians,ts_loan_management.group_customer_loan_manager,1,1,1,1
+access_delete_loan_charges_line,access.delete.loan.charges.line,model_delete_loan_charges_line,ts_loan_management.group_customer_loan_manager,1,1,1,1
+access_delete_loan_wizard,access.delete.loan.wizard,model_delete_loan_wizard,ts_loan_management.group_customer_loan_manager,1,1,1,1

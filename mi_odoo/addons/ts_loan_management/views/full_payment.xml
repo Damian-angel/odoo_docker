@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_full_pay_cft" model="ir.actions.act_window">
+        <field name="name">Full Amount Pay</field>
+        <field name="res_model">full.amount.pay</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_loan_id': active_id}</field>
+    </record>
+
+    <record id="pay_full_amount_form" model="ir.ui.view">
+        <field name="name">Pay Full Amount</field>
+        <field name="model">full.amount.pay</field>
+        <field name="arch" type="xml">
+            <form string="Pay Full Amount">
+                <group>
+                    <field name="loan_id" invisible="1"/>
+                    <field name="journal_id"/>
+                    <field name="date"/>
+                </group>
+                <group colspan="3" col="6">
+                    <field name="amount"/>
+                    <field name="fees" string="Interest(In Amount)"/>
+                    <field name="total_amount" readonly="1"/>
+                </group>
+
+                <footer>
+                    <button name="pay_full_amount" string="Pay" type="object" class="oe_highlight"/> or
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+ 
+</odoo>

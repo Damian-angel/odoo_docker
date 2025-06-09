@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="customer_loan_delete_loan_charges" model="ir.ui.view">
+        <field name="name">Delete Loan Charges Line</field>
+        <field name="model">delete.loan.charges.line</field>
+        <field name="arch" type="xml">
+            <form string="Pay amount">
+                <h3>
+                    Following Charges and Its Journal Entries will be Deleted
+                </h3>
+                <group>
+                </group>
+                <group>
+                    <field name="name" readonly="1"/>
+                </group>
+
+                <footer>
+                    <button name="delete_loan_charges" string="Delete" class="btn" type="object"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

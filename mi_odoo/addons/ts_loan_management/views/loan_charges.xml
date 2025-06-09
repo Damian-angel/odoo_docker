@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="tree_view_loan_charges" model="ir.ui.view">
+        <field name="name">Loan Charges</field>
+        <field name="model">loan.charges.technians</field>
+        <field name="arch" type="xml">
+            <tree string="Loan Charges">
+                <field name="name"/>
+            </tree>
+
+        </field>
+    </record>
+    <record id="loan_charges_form_view" model="ir.ui.view">
+        <field name="name">Loan Charges</field>
+        <field name="model">loan.charges.technians</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="description"/>
+                            <field name="charge_tax_id"/>
+                            <field name="charge_journal_id"/>
+
+                        </group>
+                        <group>
+                            <field name="charge_account_id"/>
+                            <field name="charge_amount_type"/>
+                            <field name="charge_amount"/>
+                            <field name="is_foreclosure"/>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="action_loan_charges_list_view" model="ir.actions.act_window">
+        <field name="name">Loan Charges</field>
+        <field name="res_model">loan.charges.technians</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_loan_request_taken_from_bank" name="Loan Charges" action="action_loan_charges_list_view"
+              parent="menu_main_loan_mgmt" sequence="3"/>
+</odoo>

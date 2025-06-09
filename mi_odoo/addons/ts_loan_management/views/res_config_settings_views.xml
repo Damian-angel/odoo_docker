@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="res_config_settings_view_form_customer_loan_inherit" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.purchase</field>
+        <field name="model">res.config.settings</field>
+        <field name="priority" eval="25"/>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <block id="ts_loan_block" title="Loan Management Settings">
+                    <setting id="loan_management_settings">
+                        <div class="col-xs-12 col-md-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="interval_in_loan" string="Interval in Loan"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="interval_in_loan"/>
+                                <div class="text-muted">
+                                    Loan Management Settings
+                                </div>
+                            </div>
+                        </div>
+                    </setting>
+                </block>
+            </xpath>
+        </field>
+    </record>
+</odoo>
+
